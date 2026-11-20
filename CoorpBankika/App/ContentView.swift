@@ -1,5 +1,11 @@
+//
+//  ContentView.swift
+//  CoorpBankika
+//
+//  Created by Wycliff Njenga on 20/11/2026.
+//
+
 import SwiftUI
-import Playgrounds
 
 struct ContentView: View {
     var body: some View {
@@ -10,8 +16,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-}
-
-#Playground {
-    _ = 1 + 2
 }
