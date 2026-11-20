@@ -16,11 +16,11 @@ struct BudgetSummaryCardView: View {
         VStack(spacing: 16) {
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(abs(remainingBudget).oneDecimalString)
-                    .font(.system(size: 46, weight: .bold))
+                    .font(.system(size: 44, weight: .bold))
                     .contentTransition(.numericText(value: remainingBudget))
 
                 Text("Ksh.")
-                    .font(.system(size: 15, weight: .bold))
+                    .font(.system(size: 16, weight: .bold))
             }
             .lineLimit(1)
             .minimumScaleFactor(0.5)
@@ -30,7 +30,7 @@ struct BudgetSummaryCardView: View {
         }
         .foregroundStyle(.white)
         .padding(.horizontal, 20)
-        .frame(maxWidth: .infinity, minHeight: 132)
+        .frame(maxWidth: .infinity, minHeight: 200)
         .background(LinearGradient.brand, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         .animation(.snappy, value: remainingBudget)
         .accessibilityElement(children: .combine)

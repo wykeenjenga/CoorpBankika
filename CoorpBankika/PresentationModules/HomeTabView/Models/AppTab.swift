@@ -20,11 +20,10 @@ enum AppTab: Hashable, CaseIterable {
         case .budgets: "Budgets"
         case .add: "Add"
         case .reports: "Reports"
-        case .account: "Account"
+        case .account: "Acount"
         }
     }
 
-    /// SVGs from Assets.xcassets/HomeTabIcons. Drawn as templates so the tab bar can tint them.
     var icon: ImageResource {
         switch self {
         case .home: .icHome

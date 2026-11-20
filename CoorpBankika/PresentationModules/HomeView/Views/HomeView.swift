@@ -20,7 +20,7 @@ struct HomeView: View {
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
                         .padding(.bottom, 16)
-                        .background(Color.surface)///this can crash on dark mode
+                        .background(Color.surface)///this can crash(persay) on dark mode
 
                     TotalSpendSectionView(
                         totalSpend: viewModel.totalSpend,
@@ -64,8 +64,4 @@ struct HomeView: View {
 
 #Preview("Empty") {
     HomeView(viewModel: HomeViewModel(store: BudgetStore(items: [])))
-}
-
-#Preview("With items") {
-    HomeView(viewModel: HomeViewModel(store: BudgetStore(items: BudgetItem.samples)))
 }
