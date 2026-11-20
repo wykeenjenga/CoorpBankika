@@ -7,6 +7,7 @@
 
 import Foundation
 import Observation
+import SwiftyJSON
 
 /// Single source of truth for the user's budget items.
 /// Items are saved to `UserDefaults` so they survive relaunches.
@@ -18,7 +19,7 @@ final class BudgetStore {
     private let defaults: UserDefaults?
     private let calendar: Calendar
 
-    private static let itemsKey = "budget.items"
+    private static let itemsKey = "budgetItems"
 
     init(
         monthlyBudget: Double = 200_000,
@@ -81,15 +82,16 @@ final class BudgetStore {
     // MARK: - Persistence
 
     private func save() {
-        guard let defaults, let data = try? JSONEncoder().encode(items) else { return }
+        guard let defaults, let data = try? JSON(items.map(\.json)).rawData() else { return }
         defaults.set(data, forKey: Self.itemsKey)
     }
 
+    /// Skips any saved item that no longer parses instead of dropping the whole list.
     private static func loadItems(from defaults: UserDefaults) -> [BudgetItem] {
         guard
             let data = defaults.data(forKey: itemsKey),
-            let items = try? JSONDecoder().decode([BudgetItem].self, from: data)
+            let json = try? JSON(data: data)
         else { return [] }
-        return items
+        return json.arrayValue.compactMap { try? BudgetItem(from: $0) }
     }
 }

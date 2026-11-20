@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import SwiftyJSON
 
-struct BudgetItem: Identifiable, Hashable, Codable {
+struct BudgetItem: Identifiable, Hashable, JSONModel {
     let id: UUID
     let name: String
     let category: BudgetCategory
@@ -26,6 +27,33 @@ struct BudgetItem: Identifiable, Hashable, Codable {
         self.category = category
         self.amount = amount
         self.date = date
+    }
+
+    // MARK: - JSON
+
+    /// Dates are stored as seconds since 1970.
+    init(from json: JSON) throws {
+        guard let id = UUID(uuidString: try json.requiredString("id")) else {
+            throw JSONModelError.invalid(field: "id")
+        }
+
+        try self.init(
+            id: id,
+            name: json.requiredString("name"),
+            category: BudgetCategory(from: json["category"]),
+            amount: json.requiredDouble("amount"),
+            date: Date(timeIntervalSince1970: json.requiredDouble("date"))
+        )
+    }
+
+    var json: JSON {
+        [
+            "id": id.uuidString,
+            "name": name,
+            "category": category.json,
+            "amount": amount,
+            "date": date.timeIntervalSince1970
+        ]
     }
 }
 

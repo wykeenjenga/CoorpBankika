@@ -6,15 +6,16 @@
 //
 
 import SwiftUI
+import SwiftyJSON
 
-enum BudgetCategory: String, CaseIterable, Identifiable, Codable {
+enum BudgetCategory: String, CaseIterable, Identifiable, JSONModel {
     case foodAndBeverage
     case transportAndFuel
     case clothing
     case transactionFees
-
+    
     var id: String { rawValue }
-
+    
     var title: String {
         switch self {
         case .foodAndBeverage: "Food & Beverage"
@@ -23,7 +24,7 @@ enum BudgetCategory: String, CaseIterable, Identifiable, Codable {
         case .transactionFees: "Transaction Fees"
         }
     }
-
+    
     var color: Color {
         switch self {
         case .foodAndBeverage: .categoryFood
@@ -32,7 +33,7 @@ enum BudgetCategory: String, CaseIterable, Identifiable, Codable {
         case .transactionFees: .categoryFees
         }
     }
-
+    
     /// Merchant logo shown next to items in this category.
     var icon: ImageResource {
         switch self {
@@ -41,5 +42,20 @@ enum BudgetCategory: String, CaseIterable, Identifiable, Codable {
         case .clothing: .naivas
         case .transactionFees: .paul
         }
+    }
+
+    // MARK: - JSON
+
+    /// Categories travel as their raw value, e.g. `"foodAndBeverage"`.
+    init(from json: JSON) throws {
+        guard json.exists() else { throw JSONModelError.missing(field: "category") }
+        guard let rawValue = json.string, let category = BudgetCategory(rawValue: rawValue) else {
+            throw JSONModelError.invalid(field: "category")
+        }
+        self = category
+    }
+
+    var json: JSON {
+        JSON(rawValue)
     }
 }
