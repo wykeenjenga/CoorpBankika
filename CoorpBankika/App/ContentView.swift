@@ -8,12 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
+    let store: BudgetStore
+
     var body: some View {
-        Text("Hello, world!")
-            .padding()
+        HomeTabView(store: store)
+            .preferredColorScheme(.light)
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(store: BudgetStore(items: BudgetItem.samples))
 }
