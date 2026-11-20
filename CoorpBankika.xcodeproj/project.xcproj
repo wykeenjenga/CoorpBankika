@@ -10,6 +10,12 @@
       "Base",
     ],
   },
+  "packages": [
+    {
+      "kind": "local",
+      "path": "../../Desktop/CommonPackages/SwiftyJSON",
+    },
+  ],
   "files": [
     { "kind": "folder", "path": "CoorpBankika", "target-membership": [ "CoorpBankika" ] },
     {
@@ -30,6 +36,12 @@
         "compile-sources",
         "frameworks",
         "resources",
+      ],
+      "package-product-members": [
+        {
+          "product-name": "SwiftyJSON",
+          "build-phase": { "build-phase": "frameworks" },
+        },
       ],
       "build-settings": {
         "CODE_SIGN_STYLE": "Automatic",
