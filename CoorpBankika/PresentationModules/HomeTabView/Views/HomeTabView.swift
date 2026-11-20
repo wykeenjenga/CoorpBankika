@@ -12,6 +12,7 @@ struct HomeTabView: View {
 
     @State private var selectedTab: AppTab = .home
     @State private var homeViewModel: HomeViewModel
+    @State private var addBudgetPath: [BudgetItem] = []
 
     init(store: BudgetStore) {
         self.store = store
@@ -35,9 +36,14 @@ struct HomeTabView: View {
         case .home:
             HomeView(viewModel: homeViewModel)
         case .add:
-            NavigationStack {
-                AddBudgetView(store: store) { _ in
-                    select(.home)
+            NavigationStack(path: $addBudgetPath) {
+                AddBudgetView(store: store) { item in
+                    addBudgetPath.append(item)
+                }
+                .navigationDestination(for: BudgetItem.self) { item in
+                    BudgetItemAddedView(item: item) {
+                        select(.home)
+                    }
                 }
             }
         case .budgets, .reports, .account:
@@ -51,6 +57,7 @@ struct HomeTabView: View {
     }
 
     private func select(_ tab: AppTab) {
+        addBudgetPath.removeAll()
         selectedTab = tab
     }
 }
