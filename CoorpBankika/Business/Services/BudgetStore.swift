@@ -6,32 +6,37 @@
 //
 
 import Combine
+import CoreData
 import Foundation
-import SwiftyJSON
+import OSLog
 
-/// Single source of truth for the user's budget items.
-/// Items are saved to `UserDefaults` so they survive relaunches.
+/// Single source of truth for the user's budget.
+/// Expenses and the monthly budget live in Core Data; the remaining balance,
+/// monthly totals and category split are all worked out from those records.
 @MainActor
 final class BudgetStore: ObservableObject {
-    @Published private(set) var items: [BudgetItem]
+    @Published private(set) var items: [BudgetItem] = []
 
     let monthlyBudget: Double
 
-    private let defaults: UserDefaults?
+    private let persistence: PersistenceController
+    private var context: NSManagedObjectContext { persistence.container.viewContext }
 
-    private static let itemsKey = "budgetItems"
+    private static let logger = Logger(subsystem: "CoorpBankika", category: "BudgetStore")
 
-    init(monthlyBudget: Double = 200_000, defaults: UserDefaults = .standard) {
-        self.monthlyBudget = monthlyBudget
-        self.defaults = defaults
-        self.items = Self.loadItems(from: defaults)
+    init(persistence: PersistenceController = .shared, defaultMonthlyBudget: Double = 200_000) {
+        self.persistence = persistence
+        let context = persistence.container.viewContext
+        self.monthlyBudget = Self.loadMonthlyBudget(in: context, defaultAmount: defaultMonthlyBudget)
+        self.items = Self.loadItems(in: context)
     }
 
-    /// In-memory store that never touches disk. Handy for previews and tests.
-    init(items: [BudgetItem], monthlyBudget: Double = 200_000) {
-        self.monthlyBudget = monthlyBudget
-        self.defaults = nil
-        self.items = items
+    /// In-memory store filled with `items`. Handy for previews and tests.
+    convenience init(items: [BudgetItem], monthlyBudget: Double = 200_000) {
+        self.init(persistence: PersistenceController(inMemory: true), defaultMonthlyBudget: monthlyBudget)
+        items.forEach { insert($0) }
+        save()
+        self.items = Self.loadItems(in: context)
     }
 
     @discardableResult
@@ -42,30 +47,55 @@ final class BudgetStore: ObservableObject {
         date: Date = .now
     ) -> BudgetItem {
         let item = BudgetItem(name: name, category: category, amount: amount, date: date)
-        items.append(item)
+        insert(item)
         save()
+        items.insert(item, at: 0)
         return item
     }
 
-    // MARK: - Persistence
+    // MARK: - Core Data
+
+    private func insert(_ item: BudgetItem) {
+        let entity = ExpenseEntity(context: context)
+        entity.id = item.id
+        entity.name = item.name
+        entity.categoryRawValue = item.category.rawValue
+        entity.amount = item.amount
+        entity.date = item.date
+    }
 
     private func save() {
-        guard let defaults, let data = try? Self.encoder.encode(items) else { return }
-        defaults.set(data, forKey: Self.itemsKey)
+        guard context.hasChanges else { return }
+        do {
+            try context.save()
+        } catch {
+            Self.logger.error("Couldn't save the budget database: \(error.localizedDescription)")
+        }
     }
 
-    private static func loadItems(from defaults: UserDefaults) -> [BudgetItem] {
-        guard
-            let data = defaults.data(forKey: itemsKey),
-            let json = try? JSON(data: data)
-        else { return [] }
-        return json.arrayValue.map { BudgetItem(with: $0) }
+    private static func loadItems(in context: NSManagedObjectContext) -> [BudgetItem] {
+        let request = ExpenseEntity.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "date", ascending: false)]
+        let entities = (try? context.fetch(request)) ?? []
+        return entities.map { entity in
+            BudgetItem(
+                id: entity.id,
+                name: entity.name,
+                category: BudgetCategory(rawValue: entity.categoryRawValue) ?? .foodAndBeverage,
+                amount: entity.amount,
+                date: entity.date
+            )
+        }
     }
 
-    /// Dates go out as seconds since 1970, which is what `BudgetItem(with:)` reads back.
-    private static let encoder: JSONEncoder = {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .secondsSince1970
-        return encoder
-    }()
+    /// Reads the saved budget, or saves `defaultAmount` the first time the app runs.
+    private static func loadMonthlyBudget(in context: NSManagedObjectContext, defaultAmount: Double) -> Double {
+        if let saved = try? context.fetch(BudgetEntity.fetchRequest()).first {
+            return saved.monthlyLimit
+        }
+        let budget = BudgetEntity(context: context)
+        budget.monthlyLimit = defaultAmount
+        try? context.save()
+        return defaultAmount
+    }
 }
