@@ -34,7 +34,13 @@ struct HomeTabView: View {
         switch selectedTab {
         case .home:
             HomeView(viewModel: homeViewModel)
-        case .add, .budgets, .reports, .account:
+        case .add:
+            NavigationStack {
+                AddBudgetView(store: store) { _ in
+                    select(.home)
+                }
+            }
+        case .budgets, .reports, .account:
             ContentUnavailableView(
                 selectedTab.title,
                 systemImage: selectedTab.systemImage(isSelected: false),
