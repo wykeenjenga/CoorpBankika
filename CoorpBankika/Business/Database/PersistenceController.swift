@@ -26,7 +26,7 @@ nonisolated final class PersistenceController: @unchecked Sendable {
     }()
 
     init(inMemory: Bool = false) {
-        container = NSPersistentContainer(name: "CoorpBankika", managedObjectModel: Self.model)
+        container = NSPersistentContainer(name: TargetConfiguration.shared.database.storeName, managedObjectModel: Self.model)
 
         if inMemory {
             container.persistentStoreDescriptions.first?.url = URL(fileURLWithPath: "/dev/null")

@@ -22,9 +22,9 @@ final class BudgetStore: ObservableObject {
     private let persistence: PersistenceController
     private var context: NSManagedObjectContext { persistence.container.viewContext }
 
-    private static let logger = Logger(subsystem: "CoorpBankika", category: "BudgetStore")
+    private static let logger = Logger(subsystem: TargetConfiguration.shared.logging.subsystem, category: "BudgetStore")
 
-    init(persistence: PersistenceController = .shared, defaultMonthlyBudget: Double = 200_000) {
+    init(persistence: PersistenceController = .shared, defaultMonthlyBudget: Double = TargetConfiguration.shared.budget.defaultMonthlyLimit) {
         self.persistence = persistence
         let context = persistence.container.viewContext
         self.monthlyBudget = Self.loadMonthlyBudget(in: context, defaultAmount: defaultMonthlyBudget)
