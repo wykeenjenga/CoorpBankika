@@ -47,11 +47,19 @@ struct HomeTabView: View {
                 }
             }
         case .budgets, .reports, .account:
-            ContentUnavailableView(
-                selectedTab.title,
-                systemImage: selectedTab.systemImage(isSelected: false),
-                description: Text("Coming soon.")
-            )
+            ContentUnavailableView {
+                Label {
+                    Text(selectedTab.title)
+                } icon: {
+                    Image(selectedTab.icon)
+                        .renderingMode(.template)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 48, height: 48)
+                }
+            } description: {
+                Text("Coming soon.")
+            }
         }
         
     }

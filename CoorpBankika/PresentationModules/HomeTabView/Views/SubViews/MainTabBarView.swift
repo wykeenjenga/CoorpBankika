@@ -37,9 +37,11 @@ struct MainTabBarView: View {
             onSelect(tab)
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: tab.systemImage(isSelected: isSelected))
-                    .font(.system(size: 20))
-                    .frame(height: 24)
+                Image(tab.icon)
+                    .renderingMode(.template)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 24, height: 24)
 
                 Text(tab.title)
                     .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
@@ -56,7 +58,7 @@ struct MainTabBarView: View {
         Button {
             onSelect(.add)
         } label: {
-            Image(.addButton)
+            Image(AppTab.add.icon)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 58, height: 58)

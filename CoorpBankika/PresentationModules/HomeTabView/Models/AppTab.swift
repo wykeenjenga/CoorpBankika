@@ -5,7 +5,7 @@
 //  Created by Wycliff Njenga on 20/11/2026.
 //
 
-import Foundation
+import SwiftUI
 
 enum AppTab: Hashable, CaseIterable {
     case home
@@ -24,13 +24,14 @@ enum AppTab: Hashable, CaseIterable {
         }
     }
 
-    func systemImage(isSelected: Bool) -> String {
+    /// SVGs from Assets.xcassets/HomeTabIcons. Drawn as templates so the tab bar can tint them.
+    var icon: ImageResource {
         switch self {
-        case .home: isSelected ? "house.fill" : "house"
-        case .budgets: "square.grid.2x2"
-        case .add: "plus"
-        case .reports: "chart.bar.doc.horizontal"
-        case .account: "person"
+        case .home: .icHome
+        case .budgets: .icBudgets
+        case .add: .addButton
+        case .reports: .icReports
+        case .account: .icPerson
         }
     }
 }
