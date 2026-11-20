@@ -11,12 +11,12 @@ struct HomeTabView: View {
     let store: BudgetStore
 
     @State private var selectedTab: AppTab = .home
-    @State private var homeViewModel: HomeViewModel
+    @StateObject private var homeViewModel: HomeViewModel
     @State private var addBudgetPath: [BudgetItem] = []
 
     init(store: BudgetStore) {
         self.store = store
-        _homeViewModel = State(initialValue: HomeViewModel(store: store))
+        _homeViewModel = StateObject(wrappedValue: HomeViewModel(store: store))
     }
 
     var body: some View {

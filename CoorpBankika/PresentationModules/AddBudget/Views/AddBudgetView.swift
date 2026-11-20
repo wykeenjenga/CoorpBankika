@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct AddBudgetView: View {
-    @State private var viewModel: AddBudgetViewModel
+    @StateObject private var viewModel: AddBudgetViewModel
     @FocusState private var focusedField: AddBudgetField?
 
     private let onItemCreated: (BudgetItem) -> Void
 
     init(store: BudgetStore, onItemCreated: @escaping (BudgetItem) -> Void) {
-        _viewModel = State(initialValue: AddBudgetViewModel(store: store))
+        _viewModel = StateObject(wrappedValue: AddBudgetViewModel(store: store))
         self.onItemCreated = onItemCreated
     }
 
@@ -45,7 +45,7 @@ struct AddBudgetView: View {
                         focus: $focusedField
                     )
                     .onChange(of: viewModel.allocationText) {
-                        Task { viewModel.sanitizeAllocationText() }
+                        Task { viewModel.allocationChanged() }
                     }
                 }
 

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @Bindable var viewModel: HomeViewModel
+    @ObservedObject var viewModel: HomeViewModel
 
     @State private var isShowingAllTransactions = false
 

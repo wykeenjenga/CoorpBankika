@@ -8,12 +8,12 @@
 import Foundation
 import SwiftyJSON
 
-struct BudgetItem: Identifiable, Hashable, JSONModel {
-    let id: UUID
-    let name: String
-    let category: BudgetCategory
-    let amount: Double
-    let date: Date
+struct BudgetItem: Identifiable, Hashable, Encodable {
+    var id: UUID = UUID()
+    var name: String = ""
+    var category: BudgetCategory = .foodAndBeverage
+    var amount: Double = 0
+    var date: Date = .now
 
     init(
         id: UUID = UUID(),
@@ -29,31 +29,13 @@ struct BudgetItem: Identifiable, Hashable, JSONModel {
         self.date = date
     }
 
-    // MARK: - JSON
-
     /// Dates are stored as seconds since 1970.
-    init(from json: JSON) throws {
-        guard let id = UUID(uuidString: try json.requiredString("id")) else {
-            throw JSONModelError.invalid(field: "id")
-        }
-
-        try self.init(
-            id: id,
-            name: json.requiredString("name"),
-            category: BudgetCategory(from: json["category"]),
-            amount: json.requiredDouble("amount"),
-            date: Date(timeIntervalSince1970: json.requiredDouble("date"))
-        )
-    }
-
-    var json: JSON {
-        [
-            "id": id.uuidString,
-            "name": name,
-            "category": category.json,
-            "amount": amount,
-            "date": date.timeIntervalSince1970
-        ]
+    init(with json: JSON) {
+        self.id = UUID(uuidString: json["id"].stringValue) ?? UUID()
+        self.name = json["name"].stringValue
+        self.category = BudgetCategory(with: json["category"])
+        self.amount = json["amount"].doubleValue
+        self.date = Date(timeIntervalSince1970: json["date"].doubleValue)
     }
 }
 

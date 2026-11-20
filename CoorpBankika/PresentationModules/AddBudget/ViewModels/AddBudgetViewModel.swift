@@ -5,14 +5,14 @@
 //  Created by Wycliff Njenga on 20/11/2026.
 //
 
+import Combine
 import Foundation
-import Observation
 
-@Observable
-final class AddBudgetViewModel {
-    var category: BudgetCategory = .foodAndBeverage
-    var itemName = ""
-    var allocationText = ""
+@MainActor
+final class AddBudgetViewModel: ObservableObject {
+    @Published var category: BudgetCategory = .foodAndBeverage
+    @Published var itemName = ""
+    @Published var allocationText = ""
 
     let currencyCode = "KSh"
 
@@ -33,7 +33,7 @@ final class AddBudgetViewModel {
     }
 
     /// Call whenever `allocationText` changes so pasted or typed junk is cleaned up.
-    func sanitizeAllocationText() {
+    func allocationChanged() {
         let sanitized = Self.sanitizedAmount(allocationText, decimalSeparator: decimalSeparator)
         if sanitized != allocationText {
             allocationText = sanitized

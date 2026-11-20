@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftyJSON
 
-enum BudgetCategory: String, CaseIterable, Identifiable, JSONModel {
+enum BudgetCategory: String, CaseIterable, Identifiable, Encodable {
     case foodAndBeverage
     case transportAndFuel
     case clothing
@@ -44,18 +44,9 @@ enum BudgetCategory: String, CaseIterable, Identifiable, JSONModel {
         }
     }
 
-    // MARK: - JSON
-
-    /// Categories travel as their raw value, e.g. `"foodAndBeverage"`.
-    init(from json: JSON) throws {
-        guard json.exists() else { throw JSONModelError.missing(field: "category") }
-        guard let rawValue = json.string, let category = BudgetCategory(rawValue: rawValue) else {
-            throw JSONModelError.invalid(field: "category")
-        }
-        self = category
-    }
-
-    var json: JSON {
-        JSON(rawValue)
+    /// Categories are stored as their raw value, e.g. `"foodAndBeverage"`.
+    /// Anything unrecognised falls back to Food & Beverage.
+    init(with json: JSON) {
+        self = BudgetCategory(rawValue: json.stringValue) ?? .foodAndBeverage
     }
 }

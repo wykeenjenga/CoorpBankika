@@ -5,47 +5,33 @@
 //  Created by Wycliff Njenga on 20/11/2026.
 //
 
+import Combine
 import Foundation
-import Observation
 import SwiftyJSON
 
 /// Single source of truth for the user's budget items.
 /// Items are saved to `UserDefaults` so they survive relaunches.
-@Observable
-final class BudgetStore {
+@MainActor
+final class BudgetStore: ObservableObject {
+    @Published private(set) var items: [BudgetItem]
+
     let monthlyBudget: Double
-    private(set) var items: [BudgetItem]
 
     private let defaults: UserDefaults?
-    private let calendar: Calendar
 
     private static let itemsKey = "budgetItems"
 
-    init(
-        monthlyBudget: Double = 200_000,
-        defaults: UserDefaults = .standard,
-        calendar: Calendar = .current
-    ) {
+    init(monthlyBudget: Double = 200_000, defaults: UserDefaults = .standard) {
         self.monthlyBudget = monthlyBudget
         self.defaults = defaults
-        self.calendar = calendar
         self.items = Self.loadItems(from: defaults)
     }
 
     /// In-memory store that never touches disk. Handy for previews and tests.
-    init(
-        items: [BudgetItem],
-        monthlyBudget: Double = 200_000,
-        calendar: Calendar = .current
-    ) {
+    init(items: [BudgetItem], monthlyBudget: Double = 200_000) {
         self.monthlyBudget = monthlyBudget
         self.defaults = nil
-        self.calendar = calendar
         self.items = items
-    }
-
-    var itemsNewestFirst: [BudgetItem] {
-        items.sorted { $0.date > $1.date }
     }
 
     @discardableResult
@@ -61,37 +47,25 @@ final class BudgetStore {
         return item
     }
 
-    func items(inMonthOf date: Date) -> [BudgetItem] {
-        items.filter { calendar.isDate($0.date, equalTo: date, toGranularity: .month) }
-    }
-
-    func totalSpend(inMonthOf date: Date) -> Double {
-        items(inMonthOf: date).reduce(0) { $0 + $1.amount }
-    }
-
-    func spend(for category: BudgetCategory, inMonthOf date: Date) -> Double {
-        items(inMonthOf: date)
-            .filter { $0.category == category }
-            .reduce(0) { $0 + $1.amount }
-    }
-
-    func remainingBudget(inMonthOf date: Date) -> Double {
-        monthlyBudget - totalSpend(inMonthOf: date)
-    }
-
     // MARK: - Persistence
 
     private func save() {
-        guard let defaults, let data = try? JSON(items.map(\.json)).rawData() else { return }
+        guard let defaults, let data = try? Self.encoder.encode(items) else { return }
         defaults.set(data, forKey: Self.itemsKey)
     }
 
-    /// Skips any saved item that no longer parses instead of dropping the whole list.
     private static func loadItems(from defaults: UserDefaults) -> [BudgetItem] {
         guard
             let data = defaults.data(forKey: itemsKey),
             let json = try? JSON(data: data)
         else { return [] }
-        return json.arrayValue.compactMap { try? BudgetItem(from: $0) }
+        return json.arrayValue.map { BudgetItem(with: $0) }
     }
+
+    /// Dates go out as seconds since 1970, which is what `BudgetItem(with:)` reads back.
+    private static let encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .secondsSince1970
+        return encoder
+    }()
 }
