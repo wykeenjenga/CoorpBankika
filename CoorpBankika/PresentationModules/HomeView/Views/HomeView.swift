@@ -16,14 +16,11 @@ struct HomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 14) {
-                    VStack(spacing: 28) {
-                        TopProfileSectionView(userName: viewModel.userName)
-                        BudgetSummaryCardView(remainingBudget: viewModel.remainingBudget)
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                    .padding(.bottom, 16)
-                    .background(Color.surface)///this can crash on dark mode
+                    BudgetSummaryCardView(remainingBudget: viewModel.remainingBudget)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+                        .padding(.bottom, 16)
+                        .background(Color.surface)///this can crash on dark mode
 
                     TotalSpendSectionView(
                         totalSpend: viewModel.totalSpend,
@@ -38,6 +35,14 @@ struct HomeView: View {
                 }
             }
             .scrollIndicators(.hidden)
+            // Pinned above the scroll view so the greeting stays put while the rest scrolls under it.
+            .safeAreaInset(edge: .top, spacing: 0) {
+                TopProfileSectionView(userName: viewModel.userName)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 12)
+                    .background(Color.surface.ignoresSafeArea(edges: .top))
+            }
             .background { background }
             .hidesNavigationBar()
             .navigationDestination(isPresented: $isShowingAllTransactions) {
